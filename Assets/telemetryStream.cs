@@ -43,26 +43,40 @@ public class telemetryStream : MonoBehaviour {
 	public Text sopPress;
 	public Text sopRate;
 
+	public bool live;
+	public string serverUrl;
+	public string serverLocal;
+	public string telemetryEndpoint;
+
+	private string url;
+
 	void Start() {
-		StartCoroutine(GetText());
+		url = live ? serverUrl + telemetryEndpoint : serverLocal + telemetryEndpoint;
+		//Debug.Log( url );
+		InvokeRepeating("Request", 1.0f, 1.0f);
 	}
 
-	// Update is called once per frame
 	void Update () {
+		//StartCoroutine(GetText());
+	}
+
+	void FixedUpdate () {
+		//StartCoroutine(GetText());
+	}
+
+	void Request(){
 		StartCoroutine(GetText());
 	}
 
 	IEnumerator GetText() {
-		UnityWebRequest www = UnityWebRequest.Get("http://localhost:3000/api/telemetry/recent");
+		UnityWebRequest www = UnityWebRequest.Get(url);
+
 		yield return www.Send();
 
 		if(www.isNetworkError || www.isHttpError) {
 			Debug.Log(www.error);
 		}
 		else {
-			// Show results as text
-			//Debug.Log(www.downloadHandler.text);
-
 			currentTelemetry = JsonUtility.FromJson<Telemetry>(www.downloadHandler.text);
 
 			timeLifeOxygen.text = currentTelemetry.t_o2;
@@ -82,8 +96,8 @@ public class telemetryStream : MonoBehaviour {
 			sopPress.text = currentTelemetry.p_sop;
 			sopRate.text = currentTelemetry.rate_sop;
 
+			//Debug.Log( currentTelemetry.t_eva );
 			//Debug.Log( Math.Truncate(100 * currentTelemetry.rate_o2) / 100);
-
 		}
 	}
 }
